@@ -1,0 +1,9 @@
+<launch>
+
+  <node name="structure_learner" pkg="articulation_structure" type="structure_learner_srv" output="screen">
+    <param name="filter_models" value="rigid prismatic rotational"/>
+  </node>
+  <node pkg="cmm_articulation" type="articulation_busybox.py" name="articulation_busybox" output="screen">
+  </node>
+
+</launch>

@@ -1,0 +1,17 @@
+<package>
+  <description brief="cmm_articulation">
+
+     cmm_articulation
+
+  </description>
+  <author>Caris Moses</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cmm_articulation</url>
+  <depend package="articulation_models"/>
+  <depend package="articulation_structure"/>
+  <depend package="articulation_msgs"/>
+
+</package>
+
+
