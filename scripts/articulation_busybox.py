@@ -11,6 +11,10 @@ from articulation_msgs.msg import *
 from articulation_msgs.srv import *
 from articulation_models.track_utils import *
 from articulation_models.transform_datatypes import *
+#from cmm_articulation.msg import ObjectPose
+sys.path.append('/mnt/hgfs/carismoses/rosbuild_ws/cmm_articulation/src/cmm_articulation/msg')
+from _ObjectPoses import ObjectPoses
+
 import tf
 import logging
 import getopt
@@ -33,9 +37,9 @@ class articulation_busybox:
 
         #self.listener = tf.TransformListener()
 
-        self.pose_pub = rospy.Publisher('track', TrackMsg)
+        #self.pose_pub = rospy.Publisher('track', TrackMsg)
         self.object_pub = rospy.Publisher('object', ArticulatedObjectMsg)
-        rospy.Subscriber("/bb_poses", PoseStamped, self.callback,queue_size=1)
+        rospy.Subscriber("/bb_poses", ObjectPoses, self.callback,queue_size=1)
         self.object_parts = []
         self.fit_models = rospy.ServiceProxy('fit_models', ArticulatedObjectSrv)
         self.get_spanning_tree = rospy.ServiceProxy('get_spanning_tree', ArticulatedObjectSrv)
@@ -46,40 +50,40 @@ class articulation_busybox:
         self.sigma_orientation = rospy.get_param('~sigma_orientation',0.3)
         self.reduce_dofs = rospy.get_param('~reduce_dofs',1)
         self.samples = rospy.get_param('~samples',50) #keep this number of samples
-        self.downsample = rospy.get_param('~downsample',False)#downsample or latest obs?
+        #self.downsample = rospy.get_param('~downsample',False)#downsample or latest obs?
         self.samples = 50
         self.object_msg = ArticulatedObjectMsg()
         set_param(self.object_msg, "sigma_position", self.sigma_position, ParamMsg.PRIOR)
         set_param(self.object_msg, "sigma_orientation", self.sigma_orientation, ParamMsg.PRIOR)
         set_param(self.object_msg, "reduce_dofs", self.reduce_dofs, ParamMsg.PRIOR)
 
-    def callback(self, pose):
+    def callback(self, objPoses):
         print "adding pose.."
-        transformedPose = pose
+        transformedPoses = objPoses.poses
+        objNames = objPoses.object_names
 
         if(len(self.object_parts)==0):
-            self.object_parts = [
-            TrackMsg(
-            id=i,
+            self.object_parts += [TrackMsg(id=0,)]
+            for (i, objName) in enumerate(objNames):
+                self.object_parts += [TrackMsg(id=i+1,)]
 
-            )
-            for i in range(2)
-            ]
-        #pdb.set_trace()
+        # reference frame
         identity = Pose(Point(0,0,0),Quaternion(0,0,0,1))
-        # appends the new pose to the list of poses in the track message
+        # appends the new pose to the list of poses in the track message (try to keep all track messages the same length)
         self.object_parts[0].pose.append(identity)
-        self.object_parts[1].pose.append(transformedPose.pose)
-        print len(self.object_parts)
+        for (i, objName) in enumerate(objNames):
+            self.object_parts[i+1].pose.append(transformedPoses[i].pose)
+        print 'ITERATION: ', len(self.object_parts[1].pose)
 
+        '''
         rospy.loginfo('sending tracks with '+('/'.join(["%d"%len(track.pose) for track in self.object_parts]))+' poses')
         for track in self.object_parts:
-            track.header = transformedPose.header
+            track.header = transformedPoses.header
             self.pose_pub.publish(track)
             print 'publishing messages'
-
+        '''
         # downsample or cut-off?
-        self.object_msg.header = transformedPose.header
+        self.object_msg.header = transformedPoses[0].header
         self.object_msg.parts = copy.deepcopy(self.object_parts)
         #if self.downsample:
         #    for part in self.object_msg.parts:
@@ -90,7 +94,7 @@ class articulation_busybox:
             if len(part.pose)>self.samples:
                 part.pose = part.pose[len(part.pose) - self.samples:]
 
-        self.object_msg.header = transformedPose.header
+        self.object_msg.header = transformedPoses[0].header
 
         request = ArticulatedObjectSrvRequest()
         request.object = self.object_msg
