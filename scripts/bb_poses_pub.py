@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 import rospy
+import roslib; roslib.load_manifest('cmm_articulation')
 import sys
 import json
 import pdb
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from std_msgs.msg import Header
 import time
-# not working :( directly adding to path instead
-#from cmm_articulation.msg import ObjectPose
-sys.path.append('/mnt/hgfs/carismoses/rosbuild_ws/cmm_articulation/src/cmm_articulation/msg')
-from _ObjectPoses import ObjectPoses
+from cmm_articulation.msg import ObjectPoses
 
 def bb_poses_pub():
     pose_pub = rospy.Publisher('/bb_poses', ObjectPoses)

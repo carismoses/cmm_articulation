@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest('articulation_structure')
+import roslib; roslib.load_manifest('cmm_articulation')
 import rospy
 import sys
 from visualization_msgs.msg import Marker, MarkerArray
@@ -11,9 +11,7 @@ from articulation_msgs.msg import *
 from articulation_msgs.srv import *
 from articulation_models.track_utils import *
 from articulation_models.transform_datatypes import *
-#from cmm_articulation.msg import ObjectPose
-sys.path.append('/mnt/hgfs/carismoses/rosbuild_ws/cmm_articulation/src/cmm_articulation/msg')
-from _ObjectPoses import ObjectPoses
+from cmm_articulation.msg import ObjectPoses
 
 import tf
 import logging
