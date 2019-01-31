@@ -2,6 +2,7 @@
 
 import rospy
 import roslib; roslib.load_manifest('cmm_articulation')
+import json
 
 from articulation_msgs.msg import ArticulatedObjectMsg
 
@@ -33,13 +34,10 @@ REVOLUTE_PARAMS = ['rot_center.x',
 		   'rot_radius']
 
 def callback(data):
-    print '---------------'
-    # print dir(data)
-    # print type(data.models)
-    # print len(data.models)
+    
+    models = []
     for model in data.models:
         print '====='
-        # print dir(model)
         print model.name
         if model.name == 'rigid':
             params = [p for p in model.params if p.name in RIGID_PARAMS]
@@ -47,8 +45,14 @@ def callback(data):
             params = [p for p in model.params if p.name in PRISMATIC_PARAMS]
         elif model.name == 'rotational':
 	    params = [p for p in model.params if p.name in REVOLUTE_PARAMS]
+        model_dict = {'type': model.name}
         for param in params:
-            print param.name, param.value
+            model_dict[param.name] = param.value
+	models.append(model_dict)
+
+    file_name = rospy.get_param('~structure_file_name', 'structure.json')
+    with open(file_name, 'w') as handle:
+        json.dump(models, handle)        
 
 if __name__ == '__main__':
     rospy.init_node('structure_saver')

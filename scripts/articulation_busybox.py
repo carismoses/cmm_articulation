@@ -113,9 +113,8 @@ class articulation_busybox:
             get_param(model,'sigma_orientation')
             ) for model in response.object.models])
 
-        request.object = copy.deepcopy(response.object)
-
-        response = self.get_fast_graph(request)
+        request.object = copy.deepcopy(response.object) 
+        response = self.get_spanning_tree(request)
 
         self.object_pub.publish(response.object)
         self.object_msg.models = response.object.models

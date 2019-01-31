@@ -8,7 +8,10 @@
   </node>
 
   <node pkg="cmm_articulation" type="bb_poses_pub.py" name="bb_poses_pub" output="screen">
-      <param name="poses_file_name" value="/mnt/hgfs/carismoses/honda_cmm/test.json"/>
+      <param name="poses_file_name" value="/media/sf_tmp/honda_cmm/full_busybox.json"/>
   </node>
-
+  
+  <node pkg="cmm_articulation" type="structure_subscriber.py" name="structure_sub" output="screen" >
+      <param name="structure_file_name" value="/media/sf_tmp/honda_cmm/structure.json" />
+  </node>
 </launch>
