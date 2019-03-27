@@ -2,7 +2,7 @@
 
 import roslib; roslib.load_manifest('cmm_articulation')
 import rospy
-import sys
+import numpy as np
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Vector3, Point, Pose, PoseStamped, PoseArray
 from std_msgs.msg import ColorRGBA
@@ -51,6 +51,11 @@ class articulation_busybox:
         set_param(self.object_msg, "sigma_position", self.sigma_position, ParamMsg.PRIOR)
         set_param(self.object_msg, "sigma_orientation", self.sigma_orientation, ParamMsg.PRIOR)
         set_param(self.object_msg, "reduce_dofs", self.reduce_dofs, ParamMsg.PRIOR)
+    
+    def _hasnan(self, pose):
+        if np.isnan(pose.position.x) or np.isnan(pose.position.y) or np.isnan(pose.position.z):
+            return True
+        return False
 
     def callback(self, objPoses):
         #print "adding pose.."
@@ -67,7 +72,10 @@ class articulation_busybox:
         # appends the new pose to the list of poses in the track message (try to keep all track messages the same length)
         self.object_parts[0].pose.append(identity)
         for (i, objName) in enumerate(objNames):
-            self.object_parts[i+1].pose.append(transformedPoses[i].pose)
+            if self._hasnan(transformedPoses[i].pose):
+                self.object_parts[i+1].pose.append(self.object_parts[i+1].pose[-1])
+            else:
+                self.object_parts[i+1].pose.append(transformedPoses[i].pose)
         #print 'ITERATION: ', len(self.object_parts[1].pose)
 
         '''
@@ -95,6 +103,7 @@ class articulation_busybox:
         request.object = self.object_msg
 
         parts = len(self.object_parts)
+        # if len(self.object_parts[0].pose) % 10 == 0: return
         #print "calling fit service"
         response = self.fit_models(request)
         #print " fit service done"
