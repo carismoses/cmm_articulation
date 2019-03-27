@@ -1,0 +1,13 @@
+<launch>
+
+  <node name="structure_learner" pkg="articulation_structure" type="structure_learner_srv" output="screen">
+    <param name="filter_models" value="rigid prismatic rotational"/>
+  </node>
+
+  <node pkg="cmm_articulation" type="articulation_baxter.py" name="articulation_baxter" output="screen">
+  </node>
+
+  <node pkg="cmm_articulation" type="structure_subscriber.py" name="structure_sub" output="screen" >
+      <param name="structure_file_name" value="/mnt/hgfs/carismoses/honda_cmm/structure.json" />
+  </node>
+</launch>
