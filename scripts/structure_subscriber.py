@@ -33,29 +33,36 @@ REVOLUTE_PARAMS = ['rot_center.x',
 		   'q_max[0]',
 		   'rot_radius']
 
-def callback(data):
-    
-    models = []
-    for model in data.models:
-        print '====='
-        print model.name
-        if model.name == 'rigid':
-            params = [p for p in model.params if p.name in RIGID_PARAMS]
-        elif model.name == 'prismatic':
-            params = [p for p in model.params if p.name in PRISMATIC_PARAMS]
-        elif model.name == 'rotational':
-	    params = [p for p in model.params if p.name in REVOLUTE_PARAMS]
-        model_dict = {'type': model.name}
-        for param in params:
-            model_dict[param.name] = param.value
-	models.append(model_dict)
+class StructureSub:
+	def __init__(self):
+		self.models = {}
 
-    file_name = rospy.get_param('~structure_file_name', 'structure.json')
-    with open(file_name, 'w') as handle:
-        json.dump(models, handle)        
+	def callback(self, data):
+		for model in data.models:
+			#print '====='
+			#print model.name
+			if model.name == 'rigid':
+				params = [p for p in model.params if p.name in RIGID_PARAMS]
+			elif model.name == 'prismatic':
+				params = [p for p in model.params if p.name in PRISMATIC_PARAMS]
+			elif model.name == 'rotational':
+				params = [p for p in model.params if p.name in REVOLUTE_PARAMS]
+
+			self.models[model.name] = {}
+			for param in params:
+				self.models[model.name][param.name] = param.value
+
+		print('=== in self.models to json')
+		for model in self.models.keys():
+			print(model)
+			#print(self.models[model_id]['type'])
+
+		file_name = rospy.get_param('~structure_file_name', 'structure.json')
+		with open(file_name, 'w') as handle:
+			json.dump(self.models, handle)
 
 if __name__ == '__main__':
-    rospy.init_node('structure_saver')
-
-    rospy.Subscriber('object', ArticulatedObjectMsg, callback)
-    rospy.spin()
+	rospy.init_node('structure_saver')
+	struct_sub = StructureSub()
+	rospy.Subscriber('object', ArticulatedObjectMsg, struct_sub.callback)
+	rospy.spin()
